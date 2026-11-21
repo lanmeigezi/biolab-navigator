@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生信与虚拟实验资源导航 · BioLab Navigator</title>
+<meta name="author" content="蓝莓鸽子 26311068">
+<meta name="description" content="生信与虚拟实验资源导航 · 中山大学 蓝莓鸽子（26311068）整理">
+<style>
+:root{
+  --primary:#0e6e73; --primary-d:#0a5257; --accent:#12a5a0;
+  --navy:#12324a; --ink:#1b2733; --muted:#66788a; --line:#e3ebf0;
+  --bg:#f4f7f9; --card:#ffffff; --radius:16px;
+  --shadow:0 2px 10px rgba(16,52,70,.06),0 8px 30px rgba(16,52,70,.05);
+  --ff:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--ff);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0a5257 0%,#0e6e73 45%,#128a86 100%);color:#fff;padding:46px 20px 90px;position:relative;overflow:hidden}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.07)}
+.hero::before{width:340px;height:340px;top:-120px;right:-60px}
+.hero::after{width:220px;height:220px;bottom:-90px;left:-40px}
+.hero-in{max-width:1180px;margin:0 auto;position:relative;z-index:1}
+.badge{display:inline-block;font-size:12px;letter-spacing:.14em;font-weight:700;padding:6px 14px;border:1px solid rgba(255,255,255,.4);border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:.02em;margin-bottom:12px}
+.hero .en{font-size:13px;letter-spacing:.12em;opacity:.8;margin-bottom:16px}
+.hero .sub{font-size:16px;opacity:.92;max-width:760px}
+.sign{margin-top:12px;font-size:11.5px;letter-spacing:.04em;opacity:.6}
+.stats{display:flex;gap:34px;margin-top:26px;flex-wrap:wrap}
+.stat b{font-size:34px;font-weight:800;line-height:1}
+.stat span{font-size:13px;opacity:.85;margin-left:6px}
+
+/* TOOLBAR */
+.toolbar{max-width:1180px;margin:-54px auto 0;padding:0 20px;position:relative;z-index:2}
+.panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px}
+.searchrow{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.search-wrap{flex:1;min-width:240px;position:relative}
+.search{display:flex;align-items:center;gap:10px;background:#f6f9fb;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;transition:.2s}
+.search:focus-within{border-color:var(--accent);background:#fff;box-shadow:0 0 0 4px rgba(18,165,160,.1)}
+.search svg{flex:none;color:var(--muted)}
+.search input{flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--ink);font-family:var(--ff)}
+.btn{border:none;border-radius:12px;padding:11px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--ff);display:inline-flex;align-items:center;gap:8px;transition:.2s;white-space:nowrap}
+.btn-ghost{background:#eef6f6;color:var(--primary)}
+.btn-ghost:hover{background:#ddefee}
+.btn-main{background:var(--primary);color:#fff}
+.btn-main:hover{background:var(--primary-d)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;font-family:var(--ff)}
+.chip:hover{border-color:var(--accent);color:var(--primary)}
+.chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.meta-line{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--muted);flex-wrap:wrap;gap:10px}
+
+/* SUGGEST 联想下拉 */
+.suggest{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1.5px solid var(--accent);border-radius:12px;box-shadow:0 16px 40px rgba(12,60,80,.18);z-index:30;overflow:hidden;padding:6px}
+.sug-title{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);padding:6px 10px 8px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.sug-title span:first-child{font-weight:800;color:var(--primary)}
+.sug-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:.12s}
+.sug-item:hover,.sug-item.sel{background:#eef7f6}
+.sug-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.sug-name{flex:1;font-size:14px;font-weight:700;color:var(--navy);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sug-cat{font-size:11px;color:var(--muted);flex:none}
+.sug-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#e0f2f1;color:#0a7d70;flex:none}
+.sug-badge.fuzzy{background:#f0e9fb;color:#7b3fbf}
+.sug-empty{padding:18px 12px;text-align:center;font-size:13px;color:var(--muted)}
+mark{background:#fff2b8;color:#7a4b00;padding:0 2px;border-radius:3px;font-weight:700}
+mark.soft{background:#e0f2f1;color:#0a6e63}
+.result-head{margin:18px 0 4px;padding:13px 16px;background:linear-gradient(135deg,#eef7f6,#f2f7ff);border:1px solid #cde7e2;border-left:4px solid var(--accent);border-radius:12px}
+.result-head-t{font-size:15px;font-weight:900;color:var(--navy)}
+.result-head-t b{color:var(--accent);font-size:17px}
+.result-head-s{font-size:12px;color:var(--muted);margin-top:3px}
+.card.flash{animation:flashHi 1.8s ease}
+@keyframes flashHi{0%,100%{box-shadow:var(--shadow)}15%,55%{box-shadow:0 0 0 3px var(--accent),0 8px 26px rgba(18,165,160,.25);transform:translateY(-2px)}}
+
+/* SMART 智能推荐 */
+.smart{margin-top:16px}
+.smart-label{font-size:12.5px;font-weight:800;color:var(--primary);margin-bottom:10px}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
+.rec-card{background:linear-gradient(135deg,#f0faf8,#f4f8ff);border:1px solid #cbe8e2;border-radius:12px;padding:13px 15px}
+.rec-head{display:flex;gap:10px;align-items:flex-start}
+.rec-ico{color:var(--accent);font-size:20px;line-height:1.2;flex:none}
+.rec-t{font-size:14.5px;font-weight:900;color:var(--navy)}
+.rec-d{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
+.rec-why{color:#0a8a7d;font-weight:600}
+.rec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rec-chip{font-size:12px;font-weight:700;color:var(--primary);background:#fff;border:1px solid #d3e8e4;border-radius:8px;padding:5px 9px;transition:.15s}
+.rec-chip:hover{background:var(--primary);color:#fff}
+.hist-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:12px;padding-top:11px;border-top:1px dashed var(--line)}
+.hist-l{font-size:12px;color:var(--muted);font-weight:700}
+.hist-chip{font-size:11.5px;border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer;transition:.15s}
+.hist-chip:hover{border-color:var(--accent);color:var(--primary)}
+.hist-clear{margin-left:auto;font-size:11.5px;border:none;background:none;color:#b0823a;cursor:pointer;text-decoration:underline}
+
+/* NOTICE */
+.notice{max-width:1180px;margin:16px auto 0;padding:0 20px}
+.notice-in{background:#fff8ec;border:1px solid #ffe4b8;border-radius:12px;padding:12px 16px;font-size:13.5px;color:#8a5a12;display:flex;gap:10px;align-items:flex-start}
+.notice-in svg{flex:none;margin-top:2px}
+.newline-in{background:#e8f6f4;border:1px solid #bfe6e0;border-radius:12px;padding:12px 16px;font-size:13.5px;color:#0a6e63;display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.newline-in svg{flex:none;margin-top:2px}
+
+/* MAIN */
+.main{max-width:1180px;margin:0 auto;padding:34px 20px 60px}
+.cat{margin-bottom:38px;scroll-margin-top:20px}
+.cat.hidden{display:none}
+.cat-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.cat-ico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.cat-ico svg{width:24px;height:24px}
+.cat-title h2{font-size:20px;font-weight:800;letter-spacing:.01em}
+.cat-title p{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.cat-num{margin-left:auto;font-size:13px;color:var(--muted);font-weight:700;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:.22s;position:relative}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 26px rgba(16,52,70,.12);border-color:var(--accent)}
+.card.hidden{display:none}
+.card-top{display:flex;align-items:flex-start;gap:10px}
+.card-name{font-size:15.5px;font-weight:800;color:var(--navy);line-height:1.35;flex:1}
+.card-name a:hover{color:var(--accent)}
+.go{flex:none;width:28px;height:28px;border-radius:8px;background:#f0f6f6;color:var(--primary);display:flex;align-items:center;justify-content:center;transition:.2s}
+.card:hover .go{background:var(--primary);color:#fff}
+.card-desc{font-size:13.5px;color:#4a5b6b;margin:10px 0 14px;flex:1}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:12px}
+.domain{font-size:11.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+.t-green{background:#e6f6ee;color:#0a8a4f}
+.t-blue{background:#e7f1fc;color:#1a6db5}
+.t-amber{background:#fff2d9;color:#a8650a}
+.t-purple{background:#f0e9fb;color:#7b3fbf}
+.t-rose{background:#fde9ec;color:#c2314f}
+.t-slate{background:#eef1f4;color:#5b6b7a}
+.t-teal{background:#e2f5f4;color:#0b7d79}
+.copy{flex:none;border:none;background:transparent;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;display:flex;transition:.2s}
+.copy:hover{background:#f0f6f6;color:var(--primary)}
+.copy.done{color:#0a8a4f}
+.no-url{font-size:11px;font-weight:700;color:#8a5a12;background:#fff2d9;padding:3px 8px;border-radius:6px}
+
+/* EXTRA (VCWM git) */
+.extra{background:#0f2030;color:#d7e3ee;border-radius:12px;padding:16px 18px;margin-top:16px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.extra .xlabel{color:#5fd0c8;font-weight:800;font-size:13px}
+.extra code{background:#1b3247;color:#8fe3d8;padding:7px 12px;border-radius:8px;font-size:12.5px;flex:1;min-width:220px;word-break:break-all;font-family:ui-monospace,Menlo,monospace}
+.extra .xdesc{width:100%;font-size:12.5px;color:#9fb2c4}
+
+/* ADVICE */
+.advice{max-width:1180px;margin:0 auto;padding:0 20px 20px}
+.advice-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.advice-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);border-top:4px solid var(--accent)}
+.advice-card h3{font-size:15.5px;font-weight:800;margin-bottom:8px}
+.advice-card p{font-size:13.5px;color:#4a5b6b}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);display:none}
+.empty.show{display:block}
+.empty svg{color:#c3d0d8;margin-bottom:12px}
+
+footer{background:var(--navy);color:#aebfcd;text-align:center;padding:28px 20px;font-size:13px}
+footer b{color:#fff}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transition:.3s;pointer-events:none;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:640px){
+  .hero{padding:34px 18px 80px}
+  .stats{gap:18px}.stat b{font-size:28px}
+  .panel{padding:16px}.cat-num{display:none}
+  .grid{grid-template-columns:1fr}
+}
+
+/* ============ 板块分色 + 深色模式 增强层 ============ */
+html{background:#040606}
+:root{
+  --green:#12a5a0;
+  --text-sub:#4a5b6b;
+  --panel-bg:#ffffff;
+  --chip-bg:#ffffff;
+  --input-bg:#f6f9fb;
+  --soft:#f0f6f6;
+  --cardglass:rgba(255,255,255,.93);
+  --cardbd:rgba(255,255,255,.8);
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --ink:#e7eef3; --navy:#eef5f7; --muted:#94a6b4; --text-sub:#b7c6d1;
+  --line:#2a3944; --bg:#090e12; --card:#131c24; --panel-bg:#121a21;
+  --chip-bg:#1b2630; --input-bg:#18232c; --soft:#1d2b34;
+  --cardglass:rgba(22,31,40,.92); --cardbd:rgba(255,255,255,.09);
+  --shadow:0 2px 10px rgba(0,0,0,.3),0 8px 30px rgba(0,0,0,.35);
+}
+html[data-theme="dark"] body{background:var(--bg);color:var(--ink)}
+
+/* 主题切换按钮 */
+.theme-toggle{position:absolute;top:16px;right:18px;width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.14);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:.2s;z-index:6}
+.theme-toggle:hover{background:rgba(255,255,255,.28);transform:rotate(12deg)}
+.theme-toggle svg{width:20px;height:20px}
+
+/* 分色板块：边缘=分类色融合绿，内部=分类色融白淡化 */
+.cat{
+  border:1.5px solid color-mix(in srgb, var(--cc) 48%, var(--green));
+  border-left:5px solid color-mix(in srgb, var(--cc) 68%, var(--green));
+  border-radius:18px;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--cc) 7%, #ffffff), #ffffff 78%);
+  padding:18px;
+}
+.cat-ico{background:var(--cc) !important;box-shadow:0 4px 14px color-mix(in srgb, var(--cc) 45%, transparent)}
+.cat-title h2{color:color-mix(in srgb, var(--cc) 80%, var(--navy))}
+.cat-num{background:var(--chip-bg);color:var(--muted);border-color:var(--line)}
+.card{background:var(--cardglass);border-color:var(--cardbd)}
+.card-name{color:var(--navy)}
+.card-desc{color:var(--text-sub)}
+.card-foot{border-top-color:var(--line)}
+.go{background:var(--soft);color:var(--primary)}
+.copy:hover{background:var(--soft)}
+.panel{background:var(--panel-bg);border:1px solid var(--line)}
+.search input{color:var(--ink)}
+.chip{background:var(--chip-bg);color:var(--muted);border-color:var(--line)}
+.hist-chip{background:var(--chip-bg);color:var(--muted);border-color:var(--line)}
+.rec-chip{background:var(--chip-bg);color:var(--primary);border-color:var(--line)}
+.advice-card{background:var(--card);border-color:var(--line)}
+.advice-card p{color:var(--text-sub)}
+
+/* 深色下的板块 / 卡片：深底融合分类色 */
+html[data-theme="dark"] .cat{
+  background:linear-gradient(135deg, color-mix(in srgb, var(--cc) 18%, #10181f), #0e161d 82%);
+  border-color:color-mix(in srgb, var(--cc) 60%, var(--green));
+  border-left-color:color-mix(in srgb, var(--cc) 78%, var(--green));
+}
+html[data-theme="dark"] .cat-title h2{color:color-mix(in srgb, var(--cc) 42%, #eef5f7)}
+html[data-theme="dark"] .notice-in{background:#2b2416;border-color:#5c4a1e;color:#f0d29a}
+html[data-theme="dark"] .newline-in{background:#122724;border-color:#28544e;color:#93e2d5}
+html[data-theme="dark"] .result-head{background:linear-gradient(135deg,#122624,#101c2a);border-color:#254a45}
+html[data-theme="dark"] .result-head-t{color:#dff3ef}
+html[data-theme="dark"] .rec-card{background:linear-gradient(135deg,#12251f,#141e2a);border-color:#26423e}
+html[data-theme="dark"] .rec-t{color:#e8f2f4}
+html[data-theme="dark"] .rec-why{color:#6fd8c9}
+html[data-theme="dark"] .suggest{background:#131c24;border-color:var(--accent)}
+html[data-theme="dark"] .sug-item:hover,html[data-theme="dark"] .sug-item.sel{background:#1c2c33}
+html[data-theme="dark"] .sug-name{color:#e7eef3}
+html[data-theme="dark"] .no-url{background:#3a2f18;color:#f0d29a}
+
+/* 底部三段：绿色融合边缘 → 黑灰 → 纯黑最底层 */
+footer{
+  position:relative;
+  background:linear-gradient(180deg,
+    color-mix(in srgb, var(--green) 62%, #10201f) 0,
+    color-mix(in srgb, var(--green) 22%, #172326) 34px,
+    #1a2428 36px,
+    #0c1114 66%,
+    #000000 100%);
+  border-top:3px solid color-mix(in srgb, var(--green) 72%, #081312);
+  color:#aab8c1;padding:42px 20px 30px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+footer b{color:#dff5f1}
+
+/* MORE —— 分类折叠 */
+.cat-more{display:block;margin:16px auto 0;background:#fff;border:1.5px dashed var(--line);color:var(--muted);border-radius:10px;padding:9px 20px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--ff);transition:.18s}
+.cat-more:hover{border-color:var(--accent);color:var(--primary);background:#f6fbfb}
+.cat-more span{font-size:11px;margin-left:6px;opacity:.75}
+.cat-more.open{border-style:solid}
+.card.top .card-name:before{content:"★";color:#e6a700;font-size:12px;margin-right:5px;vertical-align:1px}
+</style>
+<script>
+/* 主题预初始化：跟随系统 + 用户手动选择优先，避免闪烁 */
+(function(){
+  var t=null;
+  try{t=localStorage.getItem('bionav_theme')}catch(e){}
+  if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'}
+  document.documentElement.setAttribute('data-theme',t);
+})();
+</script>
+</head>
+<body>
+
+<header class="hero">
+  <button class="theme-toggle" id="themeToggle" title="切换深色模式" aria-label="切换深色模式"></button>
+  <div class="hero-in">
+    <span class="badge">BIO·NAV / 2026 · 完整版 · 17 类 152 项</span>
+    <h1>生信与虚拟实验资源导航</h1>
+    <div class="en">BIOINFORMATICS & VIRTUAL LAB RESOURCE HUB</div>
+    <p class="sub">从文献检索、序列结构、通路网络，到组学数据、比对进化、数据分析，再到虚拟实验与虚拟细胞世界模型 —— 覆盖生物研究完整工作流的一站式收藏清单</p>
+    <div class="stats">
+      <div class="stat"><b>17</b><span>大分类</span></div>
+      <div class="stat"><b>152</b><span>个精选资源</span></div>
+      <div class="stat"><b>149</b><span>个一键直达链接</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="panel">
+    <div class="searchrow">
+      <div class="search-wrap" id="searchWrap">
+        <label class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input id="q" type="text" placeholder="搜索名称 / 功能 / 网址，支持拼音与容错，例如 wxjs、jczj、Nextstran…" autocomplete="off">
+        </label>
+        <div class="suggest" id="suggest"></div>
+      </div>
+      <button class="btn btn-main" id="export" title="导出为浏览器书签文件">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        导出书签
+      </button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="meta-line"><span id="result">显示全部 141 个资源</span><span>点击卡片在新标签页打开 · 悬停可复制链接</span></div>
+    <div class="smart" id="smart"></div>
+  </div>
+</div>
+
+<div class="notice"><div class="notice-in">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+  <span>部分国外网站（PubMed、NCBI、KEGG、LabXchange、Labster、Nextstrain 等）可能需要科学上网；Labster、Gizmos、欧倍尔等商业平台需要学校机构订阅或授权。标「中大已订」的条目，中山大学已购买，请从图书馆入口进（校外先走 CARSI 认证）；国内直连资源已用「中文权威」标签标出。</span>
+</div></div>
+
+<div class="notice"><div class="newline-in">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+  <span>本版新增：单细胞图谱与标记基因 · 细胞建模与仿真 · 虚拟细胞基础模型；科普类精简为常用 3 项</span>
+</div></div>
+
+<main class="main" id="main"></main>
+
+<section class="advice"><div class="advice-in" id="advice"></div></section>
+
+<div class="empty" id="empty">
+  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+  <div>没有找到匹配的资源，换个关键词试试。</div>
+</div>
+
+<footer>
+  <div>生信与虚拟实验资源导航 · <b>BioLab Navigator</b> ｜ 实验课资源包 · 收藏本页即可随时访问全部链接</div>
+  <div class="sign">蓝莓鸽子 · 学号 26311068</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"meta": {"title": "生信与虚拟实验资源导航", "en": "BIOINFORMATICS & VIRTUAL LAB RESOURCE HUB", "subtitle": "从文献检索、序列结构、通路网络，到组学数据、比对进化、数据分析，再到虚拟实验与虚拟细胞世界模型 —— 覆盖生物研究完整工作流的一站式收藏清单", "cats": 17, "total": 152, "badge": "BIO·NAV / 2026 · 完整版 · 17 类 152 项"}, "notice": "部分国外网站（PubMed、NCBI、KEGG、LabXchange、Labster、Nextstrain 等）可能需要科学上网；Labster、Gizmos、欧倍尔等商业平台需要学校机构订阅或授权。标「中大已订」的条目，中山大学已购买，请从图书馆入口进（校外先走 CARSI 认证）；国内直连资源已用「中文权威」标签标出。", "newline": "本版新增：单细胞图谱与标记基因 · 细胞建模与仿真 · 虚拟细胞基础模型；科普类精简为常用 3 项", "categories": [{"id": "c1", "no": "01", "icon": "lit", "color": "#b45309", "title": "文献检索与预印本", "en": "LITERATURE & PREPRINTS", "items": [{"name": "PubMed", "url": "https://pubmed.ncbi.nlm.nih.gov/", "desc": "NCBI 生物医学文献检索，查文献的事实标准。", "tags": ["国外", "免费", "文献"], "py": "p u b m e d", "pyc": "pubmed", "ab": "pubmed", "top": true}, {"name": "PubMed Central (PMC)", "url": "https://pmc.ncbi.nlm.nih.gov/", "desc": "NCBI 免费全文库，与 PubMed 配套。", "tags": ["国外", "免费", "文献"], "py": "p u b m e d   c e n t r a l   ( p m c )", "pyc": "pubmed central (pmc)", "ab": "pubmedcentralpmc", "top": true}, {"name": "Europe PMC", "url": "https://europepmc.org/", "desc": "欧洲版 PubMed，覆盖预印本与专利，接口更开放。", "tags": ["国外", "免费", "文献"], "py": "e u r o p e   p m c", "pyc": "europe pmc", "ab": "europepmc"}, {"name": "bioRxiv", "url": "https://www.biorxiv.org/", "desc": "生物学预印本，追前沿比期刊快半年以上。", "tags": ["国外", "免费", "预印本"], "py": "b i o r x i v", "pyc": "biorxiv", "ab": "biorxiv", "top": true}, {"name": "medRxiv", "url": "https://www.medrxiv.org/", "desc": "医学预印本平台。", "tags": ["国外", "免费", "预印本"], "py": "m e d r x i v", "pyc": "medrxiv", "ab": "medrxiv"}], "py": "wen xian jian suo yu yu yin ben", "pyc": "wenxianjiansuoyuyuyinben", "ab": "wxjsyyyb"}, {"id": "c2", "no": "02", "icon": "nav", "color": "#0e6e73", "title": "综合导航与跨库检索", "en": "NAVIGATION & META-SEARCH", "items": [{"name": "Database Commons", "url": "https://ngdc.cncb.ac.cn/databasecommons/", "desc": "全球生物数据库目录，查特定数据库首选。", "tags": ["中文权威"], "py": "d a t a b a s e   c o m m o n s", "pyc": "database commons", "ab": "databasecommons", "top": true}, {"name": "BIG Search", "url": "https://ngdc.cncb.ac.cn/bigsearch/", "desc": "国家级跨库检索平台，一网打尽国内外 300+ 数据库。", "tags": ["中文权威", "免费"], "py": "b i g   s e a r c h", "pyc": "big search", "ab": "bigsearch", "top": true}, {"name": "BioWebStack", "url": "https://biowebstack.com/", "desc": "个人维护的生信导航页，适合作为书签库；网址可能变动，可搜索“BioWebStack 生信导航”。", "tags": ["国外", "网址可能变动"], "py": "b i o w e b s t a c k", "pyc": "biowebstack", "ab": "biowebstack"}], "py": "zong he dao hang yu kua ku jian suo", "pyc": "zonghedaohangyukuakujiansuo", "ab": "zhdhykkjs"}, {"id": "c3", "no": "03", "icon": "db", "color": "#0369a1", "title": "核心序列与结构数据库", "en": "SEQUENCE & STRUCTURE DATABASES", "items": [{"name": "NCBI", "url": "https://www.ncbi.nlm.nih.gov/", "desc": "GenBank 序列库、BLAST 比对、Gene、SRA 原始测序数据 —— 生信日常入口。", "tags": ["国外", "数据库"], "py": "n c b i", "pyc": "ncbi", "ab": "ncbi", "top": true}, {"name": "EMBL-EBI", "url": "https://www.ebi.ac.uk/", "desc": "欧洲生物信息研究所：UniProt 蛋白注释、Ensembl 基因组浏览器、InterPro 等，与 NCBI 并列的两极。", "tags": ["国外", "数据库"], "py": "e m b l - e b i", "pyc": "embl-ebi", "ab": "emblebi"}, {"name": "RCSB PDB", "url": "https://www.rcsb.org/", "desc": "实验解析的蛋白/核酸三维结构库。", "tags": ["国外", "结构"], "py": "r c s b   p d b", "pyc": "rcsb pdb", "ab": "rcsbpdb", "top": true}, {"name": "AlphaFold DB", "url": "https://alphafold.ebi.ac.uk/", "desc": "DeepMind 预测的 2 亿+ 蛋白结构，与 PDB 互补。", "tags": ["国外", "结构", "免费"], "py": "a l p h a f o l d   d b", "pyc": "alphafold db", "ab": "alphafolddb", "top": true}, {"name": "UCSC Genome Browser", "url": "https://genome.ucsc.edu/", "desc": "基因组可视化老牌工具。", "tags": ["国外", "基因组"], "py": "u c s c   g e n o m e   b r o w s e r", "pyc": "ucsc genome browser", "ab": "ucscgenomebrowser"}, {"name": "UniProt", "url": "https://www.uniprot.org/", "desc": "蛋白序列与功能注释的主库，查一个蛋白先来这。", "tags": ["国外", "免费", "蛋白"], "py": "u n i p r o t", "pyc": "uniprot", "ab": "uniprot", "top": true}, {"name": "InterPro", "url": "https://www.ebi.ac.uk/interpro/", "desc": "结构域与家族归类，判断“这段序列像什么”。", "tags": ["国外", "免费", "蛋白家族"], "py": "i n t e r p r o", "pyc": "interpro", "ab": "interpro"}, {"name": "Ensembl", "url": "https://www.ensembl.org/", "desc": "基因组浏览与注释，查基因结构、转录本。", "tags": ["国外", "免费", "基因组"], "py": "e n s e m b l", "pyc": "ensembl", "ab": "ensembl", "top": true}, {"name": "AlphaFold Server", "url": "https://alphafoldserver.com/", "desc": "提交序列就能算结构，比查现成库更进一步。", "tags": ["国外", "免费", "结构预测"], "py": "a l p h a f o l d   s e r v e r", "pyc": "alphafold server", "ab": "afserver"}, {"name": "SWISS-MODEL", "url": "https://swissmodel.expasy.org/", "desc": "同源建模，没有实验结构时先建个模型。", "tags": ["国外", "免费", "结构预测"], "py": "s w i s s - m o d e l", "pyc": "swissmodel", "ab": "swissmodel"}, {"name": "PDBe", "url": "https://www.ebi.ac.uk/pdbe/", "desc": "欧洲版 PDB，结构质量与配体信息更细。", "tags": ["国外", "免费", "结构"], "py": "p d b e", "pyc": "pdbe", "ab": "pdbe"}, {"name": "PubChem", "url": "https://pubchem.ncbi.nlm.nih.gov/", "desc": "化合物数据库，查小分子性质、活性、毒性。", "tags": ["国外", "免费", "化合物"], "py": "p u b c h e m", "pyc": "pubchem", "ab": "pubchem"}, {"name": "ChEMBL", "url": "https://www.ebi.ac.uk/chembl/", "desc": "药物活性与靶点关系，找抑制剂先看它。", "tags": ["国外", "免费", "药物"], "py": "c h e m b l", "pyc": "chembl", "ab": "chembl"}, {"name": "PDBsum", "url": "https://www.ebi.ac.uk/thornton-srv/databases/pdbsum/", "desc": "一个结构页看完互作、二级结构、配体位点。", "tags": ["国外", "免费", "结构"], "py": "p d b s u m", "pyc": "pdbsum", "ab": "pdbsum"}], "py": "he xin xu lie yu jie gou shu ju ku", "pyc": "hexinxulieyujiegoushujuku", "ab": "hxxlyjgsjk"}, {"id": "c4", "no": "04", "icon": "pathway", "color": "#7c3aed", "title": "通路·互作·系统生物学", "en": "PATHWAYS & INTERACTION NETWORKS", "items": [{"name": "KEGG", "url": "https://www.kegg.jp/", "desc": "代谢与信号通路图谱的标准参考。", "tags": ["国外", "通路"], "py": "k e g g", "pyc": "kegg", "ab": "kegg", "top": true}, {"name": "Reactome", "url": "https://reactome.org/", "desc": "开源、人工审编的反应通路库。", "tags": ["国外", "通路", "开源"], "py": "r e a c t o m e", "pyc": "reactome", "ab": "reactome", "top": true}, {"name": "STRING", "url": "https://string-db.org/", "desc": "蛋白互作网络，做机制图必备。", "tags": ["国外", "互作"], "py": "s t r i n g", "pyc": "string", "ab": "string", "top": true}], "py": "tong lu · hu zuo · xi tong sheng wu xue", "pyc": "tonglu·huzuo·xitongshengwuxue", "ab": "tlhzxtswx"}, {"id": "c5", "no": "05", "icon": "organism", "color": "#059669", "title": "模式生物数据库", "en": "MODEL ORGANISM DATABASES", "items": [{"name": "FlyBase（果蝇）", "url": "https://flybase.org/", "desc": "果蝇基因组与遗传学数据库。", "tags": ["国外", "模式生物"], "py": "f l y b a s e （ guo ying ）", "pyc": "flybase（guoying）", "ab": "flybasegy", "top": true}, {"name": "TAIR（拟南芥）", "url": "https://www.arabidopsis.org/", "desc": "拟南芥信息资源，植物研究首选。", "tags": ["国外", "模式生物"], "py": "t a i r （ ni nan jie ）", "pyc": "tair（ninanjie）", "ab": "tairnnj", "top": true}, {"name": "WormBase（线虫）", "url": "https://wormbase.org/", "desc": "秀丽隐杆线虫数据库。", "tags": ["国外", "模式生物"], "py": "w o r m b a s e （ xian chong ）", "pyc": "wormbase（xianchong）", "ab": "wormbasexc"}, {"name": "ZFIN（斑马鱼）", "url": "https://zfin.org/", "desc": "斑马鱼基因组与发育数据库。", "tags": ["国外", "模式生物"], "py": "z f i n （ ban ma yu ）", "pyc": "zfin（banmayu）", "ab": "zfinbmy"}, {"name": "MGI（小鼠）", "url": "https://www.informatics.jax.org/", "desc": "小鼠基因组与表型数据库。", "tags": ["国外", "模式生物"], "py": "m g i （ xiao shu ）", "pyc": "mgi（xiaoshu）", "ab": "mgixs", "top": true}, {"name": "RGD（大鼠）", "url": "https://rgd.mcw.edu/", "desc": "大鼠基因与疾病模型，和 MGI 配对用。", "tags": ["国外", "模式生物"], "py": "r g d", "pyc": "rgd", "ab": "rgd"}, {"name": "SGD（酵母）", "url": "https://www.yeastgenome.org/", "desc": "芽殖酵母的基因与功能注释，做真核模型的老底盘。", "tags": ["国外", "模式生物"], "py": "s g d", "pyc": "sgd", "ab": "sgd"}, {"name": "Xenbase（爪蟾）", "url": "https://www.xenbase.org/", "desc": "胚胎发育研究的经典模型库。", "tags": ["国外", "模式生物"], "py": "x e n b a s e", "pyc": "xenbase", "ab": "xenbase"}, {"name": "Gramene（作物）", "url": "https://www.gramene.org/", "desc": "水稻玉米等作物的比较基因组与通路。", "tags": ["国外", "模式生物"], "py": "g r a m e n e", "pyc": "gramene", "ab": "gramene"}], "py": "mo shi sheng wu shu ju ku", "pyc": "moshishengwushujuku", "ab": "msswsjk"}, {"id": "c6", "no": "06", "icon": "singlecell", "color": "#db2777", "title": "单细胞与细胞图谱", "en": "SINGLE-CELL & CELL ATLAS", "items": [{"name": "CZ CELLxGENE Discover", "url": "https://cellxgene.cziscience.com/", "desc": "陈-扎克伯格基金支持的单细胞平台，在线交互探索上亿细胞图谱，免下载查基因表达 —— 也是虚拟细胞模型的重要训练数据来源。", "tags": ["免费", "单细胞"], "py": "c z   c e l l x g e n e   d i s c o v e r", "pyc": "cz cellxgene discover", "ab": "czcellxgenediscover", "top": true}, {"name": "Human Cell Atlas", "url": "https://www.humancellatlas.org/", "desc": "人类细胞图谱计划官网，了解联盟进展和数据入口。", "tags": ["国外", "单细胞"], "py": "h u m a n   c e l l   a t l a s", "pyc": "human cell atlas", "ab": "humancellatlas", "top": true}, {"name": "Single Cell Portal", "url": "https://singlecell.broadinstitute.org/single_cell/", "desc": "Broad 的单细胞数据浏览与在线分析，界面最友好。", "tags": ["国外", "免费", "单细胞"], "py": "s i n g l e   c e l l   p o r t a l", "pyc": "single cell portal", "ab": "scp", "top": true}, {"name": "PanglaoDB", "url": "https://panglaodb.se/", "desc": "按细胞类型查标记基因，做注释时翻它最快。", "tags": ["国外", "免费", "标记基因"], "py": "p a n g l a o d b", "pyc": "panglaodb", "ab": "panglao", "top": true}, {"name": "CellMarker 2.0", "url": "http://biocc.hrbmu.edu.cn/CellMarker/", "desc": "中文团队维护的细胞标记库，按组织与物种都能筛。", "tags": ["中文权威", "免费", "标记基因"], "py": "c e l l m a r k e r", "pyc": "cellmarker", "ab": "cellmarker"}, {"name": "scRNA-tools", "url": "https://www.scrna-tools.org/", "desc": "单细胞分析工具目录，按任务找软件不用瞎搜。", "tags": ["国外", "免费", "工具目录"], "py": "s c r n a   t o o l s", "pyc": "scrna tools", "ab": "scrna"}], "py": "dan xi bao yu xi bao tu pu", "pyc": "danxibaoyuxibaotupu", "ab": "dxbyxbtp"}, {"id": "c7", "no": "07", "icon": "virus", "color": "#b45309", "title": "传染病与病原监测", "en": "INFECTIOUS DISEASE & SURVEILLANCE", "items": [{"name": "WHO Disease Outbreak News", "url": "https://www.who.int/emergencies/disease-outbreak-news", "desc": "世卫组织官方疫情通报，GISAID/Nextstrain 之外的一手权威口径。", "tags": ["国外", "官方"], "py": "w h o   d i s e a s e   o u t b r e a k   n e w s", "pyc": "who disease outbreak news", "ab": "whodiseaseoutbreaknews", "top": true}, {"name": "中国疾控中心", "url": "https://www.chinacdc.cn/", "desc": "国内疫情与病原监测官方信息。", "tags": ["中文权威", "官方"], "py": "zhong guo ji kong zhong xin", "pyc": "zhongguojikongzhongxin", "ab": "zgjkzx", "top": true}, {"name": "BV-BRC", "url": "https://www.bv-brc.org/", "desc": "细菌与病毒综合研究资源，有猴痘、H5N1 等疫情专题。", "tags": ["国外"], "py": "b v - b r c", "pyc": "bv-brc", "ab": "bvbrc"}, {"name": "GISAID", "url": "https://gisaid.org/", "desc": "全球流感与新冠数据共享的“老大哥”，溯源必备。", "tags": ["国外", "需注册"], "py": "g i s a i d", "pyc": "gisaid", "ab": "gisaid", "top": true}, {"name": "NIAID Data Discovery Portal", "url": "https://data.niaid.nih.gov/", "desc": "美国过敏与传染病研究所数据门户，400 万+ 数据集。", "tags": ["国外"], "py": "n i a i d   d a t a   d i s c o v e r y   p o r t a l", "pyc": "niaid data discovery portal", "ab": "niaiddatadiscoveryportal"}, {"name": "EnteroBase", "url": "https://enterobase.warwick.ac.uk/", "desc": "细菌基因组流行病学平台（沙门氏菌、结核等）。", "tags": ["国外"], "py": "e n t e r o b a s e", "pyc": "enterobase", "ab": "enterobase"}, {"name": "国家微生物科学数据中心 NMDC", "url": "https://nmdc.cn/", "desc": "国内微生物核心数据中心。", "tags": ["中文权威"], "py": "guo jia wei sheng wu ke xue shu ju zhong xin   n m d c", "pyc": "guojiaweishengwukexueshujuzhongxin nmdc", "ab": "gjwswkxsjzxnmdc"}, {"name": "国家基因组科学数据中心 NGDC", "url": "https://ngdc.cncb.ac.cn/", "desc": "病原微生物与新冠病毒信息库。", "tags": ["中文权威"], "py": "guo jia ji yin zu ke xue shu ju zhong xin   n g d c", "pyc": "guojiajiyinzukexueshujuzhongxin ngdc", "ab": "gjjyzkxsjzxngdc"}, {"name": "Nextstrain", "url": "https://nextstrain.org/", "desc": "实时病原体进化追踪，看病毒变异树的绝佳可视化网站。", "tags": ["国外", "免费"], "py": "n e x t s t r a i n", "pyc": "nextstrain", "ab": "nextstrain", "top": true}, {"name": "Solve the Outbreak (CDC)", "url": null, "desc": "扮演流行病学家，通过决策解决虚构疫情；手机应用商店搜索下载。", "tags": ["应用商店"], "py": "s o l v e   t h e   o u t b r e a k   ( c d c )", "pyc": "solve the outbreak (cdc)", "ab": "solvetheoutbreakcdc", "top": true}], "py": "chuan ran bing yu bing yuan jian ce", "pyc": "chuanranbingyubingyuanjiance", "ab": "crbybyjc"}, {"id": "c8", "no": "08", "icon": "flask", "color": "#0e7490", "title": "虚拟实验与线上模拟", "en": "VIRTUAL BIOLOGY LABS", "items": [{"name": "LabXchange ★", "url": "https://www.labxchange.org/", "desc": "哈佛大学出品、安进基金会资助，完全免费：细菌转化、凝胶电泳、分光光度计、CRISPR 等操作级模拟，支持中文，还能自建学习路径。", "tags": ["免费", "中文支持"], "py": "l a b x c h a n g e   ★", "pyc": "labxchange ★", "ab": "labxchange", "top": true}, {"name": "实验空间 (ilab-x)", "url": "https://www.ilab-x.com/", "desc": "教育部牵头，国内高校虚拟仿真实验大全，免费权威。", "tags": ["中文权威", "免费"], "py": "shi yan kong jian   ( i l a b - x )", "pyc": "shiyankongjian (ilab-x)", "ab": "sykjilabx", "top": true}, {"name": "国家高等教育智慧教育平台", "url": "https://higher.smartedu.cn/", "desc": "收录各高校精品虚拟实验（如华中农大植物显微技术）。", "tags": ["中文权威", "免费"], "py": "guo jia gao deng jiao yu zhi hui jiao yu ping tai", "pyc": "guojiagaodengjiaoyuzhihuijiaoyupingtai", "ab": "gjgdjyzhjypt"}, {"name": "Labster", "url": "https://www.labster.com/", "desc": "全球领先的 3D 虚拟实验室，沉浸感极强，多为机构订阅。", "tags": ["国外", "机构订阅"], "py": "l a b s t e r", "pyc": "labster", "ab": "labster"}, {"name": "miniPCR Digital", "url": "https://www.minipcr.com/", "desc": "专注分子生物学（PCR、凝胶电泳），有免费的太空病原体实验。", "tags": ["国外", "部分免费"], "py": "m i n i p c r   d i g i t a l", "pyc": "minipcr digital", "ab": "minipcrdigital"}, {"name": "ExploreLearning Gizmos", "url": "https://gizmos.explorelearning.com/", "desc": "550+ 互动模拟，适合操纵变量进行探究式学习。", "tags": ["国外", "可能订阅"], "py": "e x p l o r e l e a r n i n g   g i z m o s", "pyc": "explorelearning gizmos", "ab": "explorelearninggizmos"}, {"name": "PhET", "url": "https://phet.colorado.edu/", "desc": "科罗拉多大学经典互动模拟，自然选择、基因表达等生物模块免费。", "tags": ["国外", "免费"], "py": "p h e t", "pyc": "phet", "ab": "phet", "top": true}, {"name": "JoVE", "url": "https://www.jove.com/", "desc": "实验视频期刊，看别人怎么把 protocol 做出来（含 Education 教育专辑）。", "tags": ["国外", "中大已订", "视频"], "py": "j o v e", "pyc": "jove", "ab": "jove", "top": true}, {"name": "Concord Consortium", "url": "https://concord.org/", "desc": "Geniventure 遗传学游戏、Molecular Workbench 分子模拟，免费开源。", "tags": ["国外", "免费", "开源"], "py": "c o n c o r d   c o n s o r t i u m", "pyc": "concord consortium", "ab": "concordconsortium"}, {"name": "北京欧倍尔", "url": "https://www.bjober.com/", "desc": "国内商业平台，高精度模拟 CRISPR-Cas9 等前沿大型仪器。", "tags": ["商业"], "py": "bei jing ou bei er", "pyc": "beijingoubeier", "ab": "bjobe"}, {"name": "中国大学 MOOC", "url": "https://www.icourse163.org/", "desc": "中文系统课，生信与实验课都能找到成套的。", "tags": ["中文权威", "免费", "课程"], "py": "z h o n g g u o   d a x u e   m o o c", "pyc": "zhongguo daxue mooc", "ab": "mooc"}, {"name": "学堂在线", "url": "https://www.xuetangx.com/", "desc": "清华系的课程平台，实验类课程偏多。", "tags": ["中文权威", "免费", "课程"], "py": "x u e t a n g   z a i x i a n", "pyc": "xuetang zaixian", "ab": "xuetangx"}], "py": "xu ni shi yan yu xian shang mo ni", "pyc": "xunishiyanyuxianshangmoni", "ab": "xnsyyxsmn"}, {"id": "c9", "no": "09", "icon": "cell", "color": "#059669", "title": "细胞内部与信号网络模拟", "en": "INSIDE-THE-CELL SIMULATION", "items": [{"name": "HudsonAlpha iCell", "url": "https://icell.hudsonalpha.org/", "desc": "免费经典，3D 交互观察动物/植物/细菌细胞器。", "tags": ["国外", "免费"], "py": "h u d s o n a l p h a   i c e l l", "pyc": "hudsonalpha icell", "ab": "hudsonalphaicell", "top": true}, {"name": "Cell Collective", "url": "https://cellcollective.org/", "desc": "免费开源，专门模拟细胞信号通路、代谢网络等动态过程 —— 与第 04 类通路数据库衔接。", "tags": ["国外", "开源"], "py": "c e l l   c o l l e c t i v e", "pyc": "cell collective", "ab": "cellcollective", "top": true}, {"name": "StarCellBio (MIT)", "url": "https://starcellbio.mit.edu/", "desc": "MIT 出品，探究式虚拟实验，验证细胞内部机制假设。", "tags": ["国外", "免费"], "py": "s t a r c e l l b i o   ( m i t )", "pyc": "starcellbio (mit)", "ab": "starcellbiomit"}, {"name": "CellWalk", "url": null, "desc": "内置 AI 导师的 3D 应用，支持 AR 漫步细胞内部；App Store 搜索。", "tags": ["应用商店"], "py": "c e l l w a l k", "pyc": "cellwalk", "ab": "cellwalk"}, {"name": "Minecraft 线粒体世界 (MMW)", "url": null, "desc": "用《我的世界》搭建的细胞呼吸模拟器；搜索学术论文或 B 站教程获取地图。", "tags": ["搜索获取"], "py": "m i n e c r a f t   xian li ti shi jie   ( m m w )", "pyc": "minecraft xianlitishijie (mmw)", "ab": "minecraftxltsjmmw"}, {"name": "BioModels", "url": "https://www.ebi.ac.uk/biomodels/", "desc": "已发表的定量模型库，拿现成 ODE 改参数就能跑。", "tags": ["国外", "免费", "建模"], "py": "b i o m o d e l s", "pyc": "biomodels", "ab": "biomodels", "top": true}, {"name": "CellDesigner", "url": "https://celldesigner.org/", "desc": "画通路模型的标准作图器，SBML 友好。", "tags": ["国外", "免费", "建模"], "py": "c e l l   d e s i g n e r", "pyc": "celldesigner", "ab": "celldesigner"}, {"name": "COPASI", "url": "https://copasi.org/", "desc": "模型仿真与参数拟合，做动力学不用写代码。", "tags": ["国外", "免费", "仿真"], "py": "c o p a s i", "pyc": "copasi", "ab": "copasi"}, {"name": "SBML", "url": "https://sbml.org/", "desc": "模型交换格式的官方站，投稿补材料常要它。", "tags": ["国外", "免费", "格式标准"], "py": "s b m l", "pyc": "sbml", "ab": "sbml"}], "py": "xi bao nei bu yu xin hao wang luo mo ni", "pyc": "xibaoneibuyuxinhaowangluomoni", "ab": "xbnbyxhwlmn"}, {"id": "c10", "no": "10", "icon": "network", "color": "#4338ca", "title": "虚拟细胞世界模型 (VCWM)", "en": "VIRTUAL CELL WORLD MODELS", "items": [{"name": "VCWorld 官方代码库", "url": "https://github.com/GENTEL-lab/VCWorld", "desc": "《VCWorld》论文官方实现：结构化生物学知识 + LLM 推理的细胞级白盒模拟器，预测细胞对扰动的响应。", "tags": ["开源", "GitHub"], "py": "v c w o r l d   guan fang dai ma ku", "pyc": "vcworld guanfangdaimaku", "ab": "vcworldgfdmk", "top": true}, {"name": "Awesome-Virtual-Cell", "url": "https://github.com/Boom5426/Awesome-Virtual-Cell", "desc": "虚拟细胞领域主流模型（CellOS、GEARS 等）、数据集、基准与竞赛的持续更新汇总。", "tags": ["开源", "GitHub"], "py": "a w e s o m e - v i r t u a l - c e l l", "pyc": "awesome-virtual-cell", "ab": "awesomevirtualcell"}, {"name": "Arc Institute · State", "url": "https://arcinstitute.org/tools/state", "desc": "虚拟细胞的基础模型与扰动预测，当前最前沿的一档。", "tags": ["国外", "免费", "虚拟细胞"], "py": "a r c   s t a t e", "pyc": "arc state", "ab": "state", "top": true}, {"name": "scGPT", "url": "https://github.com/bowang-lab/scGPT", "desc": "单细胞基础模型的开源实现，可微调做注释与扰动预测。", "tags": ["开源", "GitHub", "虚拟细胞"], "py": "s c g p t", "pyc": "scgpt", "ab": "scgpt", "top": true}, {"name": "Geneformer", "url": "https://huggingface.co/ctheodoris/Geneformer", "desc": "把基因当 token 的预训练模型，权重在 Hugging Face。", "tags": ["开源", "虚拟细胞"], "py": "g e n e f o r m e r", "pyc": "geneformer", "ab": "geneformer"}], "extra": {"label": "快速开始", "code": "git clone https://github.com/GENTEL-lab/VCWorld.git", "desc": "进入文件夹后按 README 创建虚拟环境（如 conda create -n vcworld python=3.10）并安装依赖即可。"}, "py": "xu ni xi bao shi jie mo xing   ( v c w m )", "pyc": "xunixibaoshijiemoxing (vcwm)", "ab": "xnxbsjmxvcwm"}, {"id": "c11", "no": "11", "icon": "video", "color": "#dc2626", "title": "科普教育与视频课", "en": "SCIENCE OUTREACH & VIDEO COURSES", "items": [{"name": "HHMI BioInteractive", "url": "https://www.biointeractive.org/", "desc": "顶尖教育宝库，有病毒探索器和疾病传播模型。", "tags": ["国外", "免费"], "py": "h h m i   b i o i n t e r a c t i v e", "pyc": "hhmi biointeractive", "ab": "hhmibiointeractive", "top": true}, {"name": "iBiology", "url": "https://www.ibiology.org/", "desc": "诺奖得主和顶尖科学家亲自讲的免费学术报告 + 显微技术课程，适合大学阶段。", "tags": ["国外", "免费", "视频"], "py": "i b i o l o g y", "pyc": "ibiology", "ab": "ibiology", "top": true}, {"name": "iBioChina", "url": "https://www.ibiochina.org/", "desc": "iBiology 国内姊妹站。", "tags": ["中文权威", "免费", "视频"], "py": "i b i o c h i n a", "pyc": "ibiochina", "ab": "ibiochina"}, {"name": "Learn.Genetics", "url": "https://learn.genetics.utah.edu/", "desc": "犹他大学遗传科学学习中心，“细胞大小缩放”等交互堪称经典，拿过 Science 杂志教育奖。", "tags": ["国外", "免费"], "py": "l e a r n . g e n e t i c s", "pyc": "learn.genetics", "ab": "learngenetics"}, {"name": "Filtered", "url": "https://www.filteredgame.com/", "desc": "HudsonAlpha 出品，扮演生信学家利用序列比对找病毒来源。", "tags": ["国外", "免费"], "py": "f i l t e r e d", "pyc": "filtered", "ab": "filtered"}, {"name": "Our World in Data", "url": "https://ourworldindata.org/", "desc": "全球传染病历史数据与趋势图表，培养数据素养。", "tags": ["国外", "免费"], "py": "o u r   w o r l d   i n   d a t a", "pyc": "our world in data", "ab": "ourworldindata"}, {"name": "yourgenome", "url": "https://www.yourgenome.org/", "desc": "Sanger 研究所的基因组科普站。", "tags": ["国外", "免费"], "py": "y o u r g e n o m e", "pyc": "yourgenome", "ab": "yourgenome"}, {"name": "CSHL DNA Learning Center", "url": "https://dnalc.cshl.edu/", "desc": "冷泉港的分子生物学动画库。", "tags": ["国外", "免费"], "py": "c s h l   d n a   l e a r n i n g   c e n t e r", "pyc": "cshl dna learning center", "ab": "cshldnalearningcenter"}, {"name": "Khan Academy 生物板块", "url": "https://www.khanacademy.org/science/biology", "desc": "体系化免费课程 + 练习。", "tags": ["国外", "免费", "视频"], "py": "k h a n   a c a d e m y   sheng wu ban kuai", "pyc": "khan academy shengwubankuai", "ab": "khanacademyswbk"}, {"name": "Amoeba Sisters", "url": "https://www.amoebasisters.com/", "desc": "入门生物动画，B 站多有搬运。", "tags": ["国外", "免费", "视频"], "py": "a m o e b a   s i s t e r s", "pyc": "amoeba sisters", "ab": "amoebasisters"}, {"name": "Crash Course Biology", "url": "https://www.youtube.com/@crashcourse", "desc": "体系速成视频课，B 站多有搬运。", "tags": ["国外", "免费", "视频"], "py": "c r a s h   c o u r s e   b i o l o g y", "pyc": "crash course biology", "ab": "crashcoursebiology"}, {"name": "Kurzgesagt", "url": "https://www.youtube.com/@kurzgesagt", "desc": "免疫/病毒题材制作精良的科普动画。", "tags": ["国外", "免费", "视频"], "py": "k u r z g e s a g t", "pyc": "kurzgesagt", "ab": "kurzgesagt"}, {"name": "中国科普博览", "url": "https://www.kepu.net.cn/", "desc": "中科院主办的科普门户。", "tags": ["中文权威", "免费"], "py": "zhong guo ke pu bo lan", "pyc": "zhongguokepubolan", "ab": "zgkpbl", "top": true}, {"name": "中国数字科技馆", "url": "https://www.cdstm.cn/", "desc": "中文科普与虚拟展厅，给非专业听众讲机制好用。", "tags": ["中文权威", "免费"], "py": "z h o n g g u o   s h u z i   k e j i   g u a n", "pyc": "zhongguo shuzi kejiguan", "ab": "cdstm"}], "py": "ke pu jiao yu yu shi pin ke", "pyc": "kepujiaoyuyushipinke", "ab": "kpjyyspk"}, {"id": "c12", "no": "12", "icon": "tools", "color": "#475569", "title": "科研实操辅助", "en": "RESEARCH TOOLKIT", "items": [{"name": "protocols.io", "url": "https://www.protocols.io/", "desc": "开放实验方案共享平台。", "tags": ["国外", "社区"], "py": "p r o t o c o l s . i o", "pyc": "protocols.io", "ab": "protocolsio", "top": true}, {"name": "Addgene", "url": "https://www.addgene.org/", "desc": "质粒共享库，博客的分子生物学科普质量很高。", "tags": ["国外", "免费", "社区"], "py": "a d d g e n e", "pyc": "addgene", "ab": "addgene", "top": true}, {"name": "Biostars", "url": "https://www.biostars.org/", "desc": "生信问答社区，报错贴上去基本都有人答过。", "tags": ["国外", "社区"], "py": "b i o s t a r s", "pyc": "biostars", "ab": "biostars", "top": true}, {"name": "中国生物志库", "url": "https://species.sciencereading.cn/", "desc": "物种名、分类与分布，写引言时查学名靠它。", "tags": ["中大已订", "中文权威", "物种"], "py": "z h o n g g u o   s h e n g w u   z h i   k u", "pyc": "zhongguo shengwu zhiku", "ab": "species", "top": true}, {"name": "NSTL 国家科技图书文献中心", "url": "https://www.nstl.gov.cn/", "desc": "找不到全文时的国内文献传递渠道，按篇收费。", "tags": ["中文权威", "文献传递"], "py": "n s t l", "pyc": "nstl", "ab": "nstl"}, {"name": "ChinaXiv", "url": "https://www.chinaxiv.org/", "desc": "中科院的中文预印本平台，国内新工作先在这出现。", "tags": ["中文权威", "免费", "预印本"], "py": "c h i n a x i v", "pyc": "chinaxiv", "ab": "chinaxiv"}, {"name": "科学网", "url": "https://www.sciencenet.cn/", "desc": "国内科研资讯与博客，找中文解读与会议信息。", "tags": ["中文权威", "资讯"], "py": "k e x u e   w a n g", "pyc": "kexue wang", "ab": "sciencenet"}], "py": "ke yan shi cao fu zhu", "pyc": "keyanshicaofuzhu", "ab": "kyscfz"}, {"id": "c13", "no": "13", "icon": "network", "color": "#4338ca", "title": "序列比对与进化分析", "en": "ALIGNMENT & PHYLOGENY", "items": [{"name": "NCBI BLAST", "url": "https://blast.ncbi.nlm.nih.gov/Blast.cgi", "desc": "序列比对的老祖宗，同源检索先来这。", "tags": ["国外", "免费", "比对"], "py": "n c b i   b l a s t", "pyc": "ncbi blast", "ab": "blast", "top": true}, {"name": "Clustal Omega", "url": "https://www.ebi.ac.uk/Tools/msa/clustalo/", "desc": "多序列比对在线跑，几百条也扛得住。", "tags": ["国外", "免费", "比对"], "py": "c l u s t a l   o m e g a", "pyc": "clustal omega", "ab": "clustal", "top": true}, {"name": "MAFFT", "url": "https://mafft.cbrc.jp/alignment/server/", "desc": "难例上比 Clustal 更稳，长序列首选。", "tags": ["国外", "免费", "比对"], "py": "m a f f t", "pyc": "mafft", "ab": "mafft"}, {"name": "MEGA", "url": "https://www.megasoftware.net/", "desc": "比对、建树、看树一站式，教学作业常用的那套。", "tags": ["国外", "免费", "客户端"], "py": "m e g a", "pyc": "mega", "ab": "mega", "top": true}, {"name": "iTOL", "url": "https://itol.embl.de/", "desc": "进化树美化，圈图/无根树能直接进投稿图。", "tags": ["国外", "免费", "可视化"], "py": "i t o l", "pyc": "itol", "ab": "itol", "top": true}, {"name": "FigTree", "url": "http://tree.bio.ed.ac.uk/software/figtree/", "desc": "看树、改树、导出图，轻量老工具。", "tags": ["国外", "免费", "客户端"], "py": "f i g t r e e", "pyc": "figtree", "ab": "figtree"}, {"name": "Primer3", "url": "https://primer3.ut.ee/", "desc": "引物设计标准工具，qPCR 与克隆都用它。", "tags": ["国外", "免费", "引物"], "py": "p r i m e r 3", "pyc": "primer3", "ab": "primer3"}]}, {"id": "c14", "no": "14", "icon": "db", "color": "#0e7490", "title": "组学数据与再分析", "en": "OMICS DATA & REANALYSIS", "items": [{"name": "GEO (NCBI)", "url": "https://www.ncbi.nlm.nih.gov/geo/", "desc": "表达谱的公共仓库，复现别人结论的第一站。", "tags": ["国外", "免费", "组学数据"], "py": "g e o", "pyc": "geo", "ab": "geo", "top": true}, {"name": "SRA (NCBI)", "url": "https://www.ncbi.nlm.nih.gov/sra", "desc": "原始测序读段，要自己重跑流程就从这拿。", "tags": ["国外", "免费", "原始数据"], "py": "s r a", "pyc": "sra", "ab": "sra", "top": true}, {"name": "ENA (EBI)", "url": "https://www.ebi.ac.uk/ena", "desc": "欧洲镜像，下载常常比 SRA 顺手。", "tags": ["国外", "免费", "原始数据"], "py": "e n a", "pyc": "ena", "ab": "ena"}, {"name": "ArrayExpress", "url": "https://www.ebi.ac.uk/biostudies/arrayexpress", "desc": "老牌表达数据归档，老论文的原始数据常只在这。", "tags": ["国外", "免费", "组学数据"], "py": "a r r a y e x p r e s s", "pyc": "arrayexpress", "ab": "ae"}, {"name": "PRIDE", "url": "https://www.ebi.ac.uk/pride/", "desc": "蛋白组原始谱图，做质谱再分析必来。", "tags": ["国外", "免费", "蛋白组"], "py": "p r i d e", "pyc": "pride", "ab": "pride"}, {"name": "GSA 国家组学数据中心", "url": "https://ngdc.cncb.ac.cn/gsa", "desc": "国内的测序数据存档，中文项目常放这。", "tags": ["中文权威", "组学数据"], "py": "g s a", "pyc": "gsa", "ab": "gsa", "top": true}, {"name": "Human Protein Atlas", "url": "https://www.proteinatlas.org/", "desc": "蛋白在组织与细胞里的定位，一张图讲清。", "tags": ["国外", "免费", "表达谱"], "py": "h u m a n   p r o t e i n   a t l a s", "pyc": "human protein atlas", "ab": "hpa", "top": true}, {"name": "cBioPortal", "url": "https://www.cbioportal.org/", "desc": "肿瘤队列的突变与拷贝数，点几下就出生存曲线。", "tags": ["国外", "免费", "肿瘤组学"], "py": "c b i o p o r t a l", "pyc": "cbioportal", "ab": "cbio"}, {"name": "ENCODE", "url": "https://www.encodeproject.org/", "desc": "调控元件与 ChIP/ATAC 数据，讲机制要用。", "tags": ["国外", "免费", "调控"], "py": "e n c o d e", "pyc": "encode", "ab": "encode"}, {"name": "GTEx Portal", "url": "https://gtexportal.org/", "desc": "人体多组织的表达基线，查“这基因在哪表达”。", "tags": ["国外", "免费", "表达谱"], "py": "g t e x", "pyc": "gtex", "ab": "gtex"}, {"name": "ClinVar", "url": "https://www.ncbi.nlm.nih.gov/clinvar/", "desc": "变异与疾病关联的权威归档，判致病性先查它。", "tags": ["国外", "免费", "变异"], "py": "c l i n v a r", "pyc": "clinvar", "ab": "clinvar", "top": true}, {"name": "dbSNP", "url": "https://www.ncbi.nlm.nih.gov/snp/", "desc": "SNP/ indel 的编号总库，写方法学要引。", "tags": ["国外", "免费", "变异"], "py": "d b s n p", "pyc": "dbsnp", "ab": "dbsnp"}, {"name": "gnomAD", "url": "https://gnomad.broadinstitute.org/", "desc": "人群等位基因频率，筛罕见变异的第一道闸。", "tags": ["国外", "免费", "变异"], "py": "g n o m a d", "pyc": "gnomad", "ab": "gnomad"}, {"name": "COSMIC", "url": "https://cancer.sanger.ac.uk/cosmic", "desc": "肿瘤体细胞突变库，查驱动基因与用药证据。", "tags": ["国外", "需注册", "肿瘤"], "py": "c o s m i c", "pyc": "cosmic", "ab": "cosmic"}, {"name": "OncoKB", "url": "https://www.oncokb.org/", "desc": "突变—用药的证据分级，判断“这个突变能不能吃药”。", "tags": ["国外", "需注册", "肿瘤"], "py": "o n c o k b", "pyc": "oncokb", "ab": "oncokb"}, {"name": "GDC 数据门户", "url": "https://portal.gdc.cancer.gov/", "desc": "TCGA/CPTAC 原始与处理后数据，肿瘤组学的主入口。", "tags": ["国外", "免费", "肿瘤组学"], "py": "g d c", "pyc": "gdc", "ab": "gdc"}]}, {"id": "c15", "no": "15", "icon": "tools", "color": "#475569", "title": "数据分析与绘图", "en": "ANALYSIS & FIGURES", "items": [{"name": "Galaxy", "url": "https://usegalaxy.org/", "desc": "不写代码跑 RNA-seq 与变异分析，点鼠标出流程。", "tags": ["国外", "免费", "免编程"], "py": "g a l a x y", "pyc": "galaxy", "ab": "galaxy", "top": true}, {"name": "nf-core", "url": "https://nf-co.re/", "desc": "现成的可复现流程合集，一条命令跑完标准分析。", "tags": ["国外", "免费", "流程"], "py": "n f - c o r e", "pyc": "nf-core", "ab": "nfcore"}, {"name": "Cytoscape", "url": "https://cytoscape.org/", "desc": "网络图与互作图的标准作图工具。", "tags": ["国外", "免费", "客户端"], "py": "c y t o s c a p e", "pyc": "cytoscape", "ab": "cytoscape", "top": true}, {"name": "Fiji / ImageJ", "url": "https://imagej.net/software/fiji/", "desc": "显微图定量：数细胞、量荧光、批处理。", "tags": ["国外", "免费", "图像"], "py": "f i j i   i m a g e j", "pyc": "fiji imagej", "ab": "fiji", "top": true}, {"name": "Zotero", "url": "https://www.zotero.org/", "desc": "文献管理加引文插入，写综述省一半力气。", "tags": ["国外", "免费", "文献"], "py": "z o t e r o", "pyc": "zotero", "ab": "zotero", "top": true}, {"name": "BioRender", "url": "https://www.biorender.com/", "desc": "画机制图与实验流程，出图能直接进 PPT。", "tags": ["国外", "部分免费", "绘图"], "py": "b i o r e n d e r", "pyc": "biorender", "ab": "biorender"}, {"name": "SnapGene Viewer", "url": "https://www.snapgene.com/snapgene-viewer", "desc": "质粒图谱与酶切位点，克隆离不开。", "tags": ["国外", "免费", "质粒"], "py": "s n a p g e n e", "pyc": "snapgene", "ab": "snapgene"}, {"name": "Benchling", "url": "https://www.benchling.com/", "desc": "电子实验记录，实验本能检索、能共享。", "tags": ["国外", "部分免费", "记录"], "py": "b e n c h l i n g", "pyc": "benchling", "ab": "benchling"}, {"name": "QuPath", "url": "https://qupath.github.io/", "desc": "全片扫描图与病理定量，开源好上手。", "tags": ["国外", "免费", "图像"], "py": "q u p a t h", "pyc": "qupath", "ab": "qupath"}, {"name": "CellProfiler", "url": "https://cellprofiler.org/", "desc": "批量图像分析流水线，数细胞不用写代码。", "tags": ["国外", "免费", "图像"], "py": "c e l l p r o f i l e r", "pyc": "cellprofiler", "ab": "cellprofiler"}, {"name": "ilastik", "url": "https://www.ilastik.org/", "desc": "交互式像素分类，分割难缠的片子很省力。", "tags": ["国外", "免费", "图像"], "py": "i l a s t i k", "pyc": "ilastik", "ab": "ilastik"}, {"name": "Jupyter", "url": "https://jupyter.org/", "desc": "写 Python 分析笔记本，图与代码放一起。", "tags": ["国外", "免费", "编程"], "py": "j u p y t e r", "pyc": "jupyter", "ab": "jupyter", "top": true}, {"name": "RStudio / Posit", "url": "https://posit.co/download/rstudio-desktop/", "desc": "R 的顺手 IDE，统计与出图都在这做。", "tags": ["国外", "免费", "编程"], "py": "r s t u d i o", "pyc": "rstudio", "ab": "rstudio"}]}, {"id": "c16", "no": "16", "icon": "lit", "color": "#b45309", "title": "中文文献与引文（中大已订）", "en": "CHINESE LITERATURE & CITATION", "items": [{"name": "中国知网 CNKI", "url": "https://www.cnki.net/", "desc": "中文文献的地基，期刊、学位论文、会议一站。", "tags": ["中大已订", "中文", "文献"], "py": "z h o n g g u o   z h i w a n g", "pyc": "zhongguo zhiwang", "ab": "cnki", "top": true}, {"name": "万方数据", "url": "https://www.wanfangdata.com.cn/", "desc": "学位论文与中文医学，和知网互补。", "tags": ["中大已订", "中文", "文献"], "py": "w a n f a n g", "pyc": "wanfang", "ab": "wanfang", "top": true}, {"name": "维普中文期刊", "url": "http://qikan.cqvip.com/", "desc": "老刊回溯比知网全，查早期中文文献用它。", "tags": ["中大已订", "中文", "文献"], "py": "w e i p u", "pyc": "weipu", "ab": "vip"}, {"name": "SinoMed 中国生物医学文献服务系统", "url": "https://www.sinomed.ac.cn/", "desc": "中文医学主题词检索最规范，查全率高。", "tags": ["中大已订", "中文", "文献"], "py": "s i n o m e d", "pyc": "sinomed", "ab": "sinomed", "top": true}, {"name": "Web of Science", "url": "https://www.webofscience.com/", "desc": "引文追踪与影响分析，看谁在跟进这个方向。", "tags": ["中大已订", "引文"], "py": "w e b   o f   s c i e n c e", "pyc": "web of science", "ab": "wos", "top": true}, {"name": "Scopus", "url": "https://www.scopus.com/", "desc": "覆盖面比 WoS 宽，作者与机构分析好用。", "tags": ["中大已订", "引文"], "py": "s c o p u s", "pyc": "scopus", "ab": "scopus"}, {"name": "JCR 期刊引用报告", "url": "https://jcr.clarivate.com/", "desc": "选刊看分区与影响因子，投稿前必查。", "tags": ["中大已订", "选刊"], "py": "j c r", "pyc": "jcr", "ab": "jcr"}, {"name": "ESI 基本科学指标", "url": "https://esi.clarivate.com/", "desc": "判断方向热不热，看高被引与热点论文。", "tags": ["中大已订", "评价"], "py": "e s i", "pyc": "esi", "ab": "esi"}, {"name": "CSCD 中国科学引文数据库", "url": "http://sciencechina.cn/", "desc": "中文引文库，看国内谁引了谁。", "tags": ["中大已订", "引文"], "py": "c s c d", "pyc": "cscd", "ab": "cscd"}, {"name": "读秀学术搜索", "url": "https://www.duxiu.com/", "desc": "中文图书章节级检索，找教材里的原话。", "tags": ["中大已订", "中文", "图书"], "py": "d u x i u", "pyc": "duxiu", "ab": "duxiu"}]}, {"id": "c17", "no": "17", "icon": "nav", "color": "#7c3aed", "title": "文献发现与引文网络", "en": "DISCOVERY & CITATION GRAPHS", "items": [{"name": "Semantic Scholar", "url": "https://www.semanticscholar.org/", "desc": "AI 抽取摘要与引用语境，找相关文献比 PubMed 聪明。", "tags": ["国外", "免费", "文献发现"], "py": "s e m a n t i c   s c h o l a r", "pyc": "semantic scholar", "ab": "s2", "top": true}, {"name": "Connected Papers", "url": "https://www.connectedpapers.com/", "desc": "输入一篇，画出这一片的文献关系图。", "tags": ["国外", "免费", "引文网络"], "py": "c o n n e c t e d   p a p e r s", "pyc": "connected papers", "ab": "cp", "top": true}, {"name": "ResearchRabbit", "url": "https://www.researchrabbit.ai/", "desc": "订阅一个方向，新文章自动顺着引文网推给你。", "tags": ["国外", "免费", "引文网络"], "py": "r e s e a r c h   r a b b i t", "pyc": "research rabbit", "ab": "rr"}, {"name": "Litmaps", "url": "https://www.litmaps.com/", "desc": "文献地图与时间轴，看一个领域怎么长出来的。", "tags": ["国外", "免费", "引文网络"], "py": "l i t m a p s", "pyc": "litmaps", "ab": "litmaps"}, {"name": "scite", "url": "https://scite.ai/", "desc": "看别人是“支持”还是“反驳”这篇，避免误引。", "tags": ["国外", "部分免费", "引文语境"], "py": "s c i t e", "pyc": "scite", "ab": "scite"}, {"name": "Consensus", "url": "https://consensus.app/", "desc": "用一句话提问，返回带结论的文献摘要。", "tags": ["国外", "部分免费", "AI 检索"], "py": "c o n s e n s u s", "pyc": "consensus", "ab": "consensus"}, {"name": "Elicit", "url": "https://elicit.com/", "desc": "按研究问题批量抽数据，做表格化的文献综述。", "tags": ["国外", "部分免费", "AI 检索"], "py": "e l i c i t", "pyc": "elicit", "ab": "elicit"}, {"name": "Unpaywall", "url": "https://unpaywall.org/", "desc": "查这篇有没有合法免费版，浏览器插件最好用。", "tags": ["国外", "免费", "全文获取"], "py": "u n p a y w a l l", "pyc": "unpaywall", "ab": "unpaywall", "top": true}, {"name": "Google Scholar", "url": "https://scholar.google.com/", "desc": "覆盖面最广的学术搜索，找引用它的文章最方便。", "tags": ["国外", "免费", "文献"], "py": "g o o g l e   s c h o l a r", "pyc": "google scholar", "ab": "gs", "top": true}]}], "advice": [{"title": "写论文 / 做研究", "desc": "PubMed → NCBI / EBI → KEGG / STRING，从查文献到查序列、通路的标准路径。", "color": "#b45309"}, {"title": "上手做实验", "desc": "LabXchange · 实验空间 · Cell Collective —— 免费权威，边学边练。", "color": "#0e7490"}, {"title": "跟进前沿", "desc": "bioRxiv · CELLxGENE · VCWorld —— 从预印本到虚拟细胞 SOTA。", "color": "#4338ca"}], "scenarios": [{"id": "s-protein", "label": "做蛋白结构 / 突变分析", "desc": "查结构、看预测模型、找互作网络", "kw": ["蛋白", "结构", "pdb", "alphafold", "折叠", "突变", "结构域", "protein", "docking", "互作"], "recs": ["RCSB PDB", "AlphaFold DB", "EMBL-EBI", "STRING"]}, {"id": "s-seq", "label": "做序列 / 组学生信分析", "desc": "比对、基因组浏览、原始数据处理", "kw": ["序列", "比对", "blast", "基因组", "测序", "sra", "转录组", "rna", "sequence", "alignment", "biostars"], "recs": ["NCBI", "EMBL-EBI", "UCSC Genome Browser", "Biostars"]}, {"id": "s-pathway", "label": "画通路 / 机制图", "desc": "查信号通路、反应网络、蛋白互作", "kw": ["通路", "信号", "互作", "机制", "kegg", "reactome", "string", "pathway", "network", "网络"], "recs": ["KEGG", "Reactome", "STRING", "Cell Collective"]}, {"id": "s-model", "label": "做模式生物实验", "desc": "果蝇/线虫/斑马鱼/小鼠/拟南芥 数据库", "kw": ["果蝇", "线虫", "斑马鱼", "小鼠", "拟南芥", "模式生物", "flybase", "wormbase", "zfin", "mgi", "tair", "基因敲除"], "recs": ["FlyBase（果蝇）", "WormBase（线虫）", "ZFIN（斑马鱼）", "MGI（小鼠）", "TAIR（拟南芥）"]}, {"id": "s-virtualcell", "label": "做虚拟细胞 / AI 建模", "desc": "单细胞图谱、扰动预测、前沿模型", "kw": ["虚拟细胞", "单细胞", "cell", "vcworld", "图谱", "扰动", "scRNA", "细胞图谱", "aI", "模型", "cellxgene"], "recs": ["CZ CELLxGENE Discover", "Human Cell Atlas", "VCWorld 官方代码库", "Awesome-Virtual-Cell"]}, {"id": "s-lab", "label": "准备实验课 / 练虚拟实验", "desc": "免费仿真实验、操作级模拟", "kw": ["虚拟实验", "实验课", "实验", "pcr", "电泳", "转化", "crispr", "lab", "模拟", "labxchange", "练手", "作业"], "recs": ["LabXchange ★", "实验空间 (ilab-x)", "PhET", "miniPCR Digital", "北京欧倍尔"]}, {"id": "s-literature", "label": "写论文 / 查文献", "desc": "文献检索、预印本、开放全文", "kw": ["文献", "论文", "综述", "pubmed", "preprint", "预印本", "引用", "查文献", "写论文", "论文", "pmc", "biorxiv"], "recs": ["PubMed", "PubMed Central (PMC)", "Europe PMC", "bioRxiv", "BioWebStack"]}, {"id": "s-pathogen", "label": "做病原 / 疫情分析", "desc": "疫情通报、进化追踪、数据共享", "kw": ["病毒", "疫情", "病原", "流感", "新冠", "传染病", "who", "gisaid", "nextstrain", " outbreak", "进化树", "溯源"], "recs": ["WHO Disease Outbreak News", "Nextstrain", "GISAID", "BV-BRC", "中国疾控中心"]}, {"id": "s-cell-sim", "label": "模拟细胞内信号 / 代谢", "desc": "动态网络、细胞器 3D 观察", "kw": ["细胞", "信号通路", "代谢", "icell", "cell collective", "细胞器", "starcell", "动态"], "recs": ["Cell Collective", "HudsonAlpha iCell", "StarCellBio (MIT)", "Concord Consortium"]}]};
+
+const ICONS = {
+  nav:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+  virus:'<circle cx="12" cy="12" r="5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/><circle cx="12" cy="2.5" r="1"/><circle cx="12" cy="21.5" r="1"/><circle cx="2.5" cy="12" r="1"/><circle cx="21.5" cy="12" r="1"/>',
+  game:'<path d="M7 8h10a4 4 0 014 4v1a3 3 0 01-5.2 2L14 13h-4l-1.8 2A3 3 0 013 13v-1a4 4 0 014-4z"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r=".9"/><circle cx="18" cy="13.5" r=".9"/>',
+  flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 001.8 3h10.4a2 2 0 001.8-3l-5-9V3"/><path d="M7 15h10"/>',
+  cell:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><circle cx="6.5" cy="7.5" r="1.1"/><circle cx="17.5" cy="9" r="1.1"/><circle cx="7.5" cy="17" r="1.1"/>',
+  network:'<circle cx="12" cy="4" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><circle cx="12" cy="12" r="2.5"/><path d="M12 6v3.5M10.2 13.8L6.5 16.8M13.8 13.8l3.7 3"/>',
+  lit:'<path d="M4 5.5A2.5 2.5 0 016.5 3H20v16H6.5A2.5 2.5 0 004 21.5z"/><path d="M4 5.5V21.5M8 7h8M8 11h8M8 15h5"/>',
+  db:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  pathway:'<circle cx="5" cy="12" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 12h4l6-6M11 12l6 6"/>',
+  organism:'<path d="M12 3v6M12 9L6 15M12 9l6 6M6 15v3M6 15l-2-3M18 15v3M18 15l2-3"/><circle cx="12" cy="3" r="1.5"/><circle cx="6" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/>',
+  singlecell:'<circle cx="8" cy="8" r="3.5"/><circle cx="16.5" cy="7" r="2.5"/><circle cx="9" cy="16.5" r="2.5"/><circle cx="17" cy="16" r="3.8"/><circle cx="8" cy="8" r="1"/>',
+  video:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/>',
+  tools:'<path d="M14.7 6.3a4 4 0 00-5 5L4 17l3 3 5.7-5.7a4 4 0 005-5z"/><path d="M13 6l3 3"/>'
+};
+function ico(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[k]||ICONS.nav)+'</svg>'}
+
+const TAGCLS = {
+  '中文权威':'t-blue','免费':'t-green','国外':'t-amber','需注册':'t-slate',
+  '应用商店':'t-slate','搜索获取':'t-slate','网址可能变动':'t-amber',
+  '机构订阅':'t-purple','部分免费':'t-teal','可能订阅':'t-purple',
+  '商业':'t-rose','开源':'t-green','GitHub':'t-teal',
+  '文献':'t-blue','预印本':'t-purple','数据库':'t-blue','结构':'t-teal',
+  '基因组':'t-blue','通路':'t-green','互作':'t-green','模式生物':'t-green',
+  '单细胞':'t-rose','官方':'t-blue','视频':'t-rose','社区':'t-purple',  '中文支持':'t-green',
+  '中大已订':'t-purple','组学数据':'t-blue','变异':'t-rose','肿瘤':'t-rose','肿瘤组学':'t-rose',
+  '引文网络':'t-teal','文献发现':'t-blue','AI 检索':'t-purple','图像':'t-teal','编程':'t-blue',
+  '课程':'t-green','物种':'t-green','文献传递':'t-amber','结构预测':'t-teal','蛋白':'t-blue',
+  '蛋白家族':'t-blue','绘图':'t-teal','质粒':'t-teal','记录':'t-purple','中文':'t-blue','图书':'t-blue',
+  '选刊':'t-amber','评价':'t-amber','化合物':'t-teal','药物':'t-rose','原始数据':'t-slate','表达谱':'t-blue',
+  '调控':'t-blue','引文':'t-amber','引文语境':'t-amber','比对':'t-teal','引物':'t-teal','免编程':'t-green',
+  '流程':'t-green','客户端':'t-slate','资讯':'t-slate','蛋白组':'t-blue','通路':'t-green',
+};
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function tagHtml(t){return '<span class="tag '+(TAGCLS[t]||'t-slate')+'">'+esc(t)+'</span>'}
+function domain(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}}
+
+const ALL=[];
+DATA.categories.forEach(c=>c.items.forEach(it=>{it._cat=c;ALL.push(it)}));
+let curCat='all', kw='', suggestList=[], selIdx=-1;
+const expanded=new Set();
+let COLS=3;   // 每行能放几张卡（按实际宽度算），一行放得下的分类不折叠
+const HIST_KEY='bionav_history_v1';
+
+/* ---------- 编辑距离（轻度容错） ---------- */
+function editDist(a,b){
+  if(a===b) return 0;
+  if(!a.length) return b.length;
+  if(!b.length) return a.length;
+  let prev=[]; for(let j=0;j<=b.length;j++) prev[j]=j;
+  for(let i=1;i<=a.length;i++){
+    const cur=[i];
+    for(let j=1;j<=b.length;j++){
+      cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    }
+    prev=cur;
+  }
+  return prev[b.length];
+}
+
+/* ---------- 匹配打分：精确 / 拼音 / 首字母 / 容错 ---------- */
+function scoreItem(it,q){
+  if(!q) return {ok:true,score:0,type:'exact'};
+  const ql=q.toLowerCase();
+  const nameL=it.name.toLowerCase(), descL=it.desc.toLowerCase();
+  const urlL=(it.url||'').toLowerCase(), tagL=it.tags.join(' ').toLowerCase();
+  const cat=it._cat||{};
+  const catL=(cat.title||'').toLowerCase();
+  if(nameL.indexOf(ql)>=0) return {ok:true,score:100,type:'exact'};
+  if(catL && catL.indexOf(ql)>=0) return {ok:true,score:92,type:'cat'};
+  if(tagL.indexOf(ql)>=0) return {ok:true,score:88,type:'tag'};
+  if(descL.indexOf(ql)>=0) return {ok:true,score:80,type:'desc'};
+  if(urlL.indexOf(ql)>=0) return {ok:true,score:72,type:'url'};
+  if(/^[a-z0-9]+$/.test(ql)){
+    // 分类名拼音/首字母（如 wxjs=文献检索、xnsy=虚拟实验）
+    if(cat.ab && cat.ab.indexOf(ql)===0) return {ok:true,score:78,type:'py'};
+    if(cat.pyc && cat.pyc.indexOf(ql)>=0) return {ok:true,score:70,type:'py'};
+    if(it.ab && it.ab.indexOf(ql)===0) return {ok:true,score:76,type:'ab'};
+    if(it.pyc && it.pyc.indexOf(ql)>=0) return {ok:true,score:66,type:'py'};
+    if(it.py && it.py.split(' ').some(t=>t && t.indexOf(ql)===0)) return {ok:true,score:62,type:'py'};
+    if(it.ab && it.ab.indexOf(ql)>=0) return {ok:true,score:56,type:'ab'};
+    if(ql.length>=5){
+      const words=nameL.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>=4);
+      for(let k=0;k<words.length;k++){
+        const d=editDist(words[k],ql);
+        if(d<=1 || (words[k].length>=7 && d<=2)) return {ok:true,score:40,type:'fuzzy'};
+      }
+      const dw=descL.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>=5);
+      for(let k=0;k<dw.length;k++){ if(editDist(dw[k],ql)<=1) return {ok:true,score:34,type:'fuzzy'}; }
+    }
+  }
+  return {ok:false,score:0,type:''};
+}
+
+/* ---------- 高亮 ---------- */
+function hl(text,it,q,allowSoft){
+  text=String(text);
+  if(!q) return esc(text);
+  const i=text.toLowerCase().indexOf(q.toLowerCase());
+  if(i>=0) return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));
+  if(allowSoft!==false){
+    const sc=scoreItem(it,q);
+    if(sc.type==='py'||sc.type==='ab'||sc.type==='fuzzy') return '<mark class="soft">'+esc(text)+'</mark>';
+  }
+  return esc(text);
+}
+
+/* ---------- 搜索历史（localStorage） ---------- */
+function getHistory(){try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')}catch(e){return []}}
+function addHistory(q){
+  q=(q||'').trim(); if(q.length<2) return;
+  const h=getHistory().filter(x=>x.q.toLowerCase()!==q.toLowerCase());
+  h.unshift({q,t:Date.now()});
+  try{localStorage.setItem(HIST_KEY,JSON.stringify(h.slice(0,30)))}catch(e){}
+}
+function clearHistory(){try{localStorage.removeItem(HIST_KEY)}catch(e){} renderSmart(); toast('搜索记录已清除')}
+
+/* ---------- 意图推荐：猜你在做什么实验 / 论文 ---------- */
+function renderSmart(){
+  const box=document.getElementById('smart');
+  const hist=getHistory();
+  const signals=[];
+  if(kw) signals.push({q:kw,w:3.2});
+  hist.slice(0,12).forEach((x,i)=>signals.push({q:String(x.q).toLowerCase(),w:Math.max(0.5,1.6-i*0.09)}));
+  let cards='';
+  // 1) 依据搜索记录 / 当前词，猜你可能在做的实验或论文场景
+  const scored=(DATA.scenarios||[]).map(s=>{
+    let sc=0; const hit=[];
+    signals.forEach(sig=>{
+      s.kw.forEach(k=>{
+        if(k && sig.q.indexOf(String(k).toLowerCase())>=0){
+          sc+=sig.w; if(hit.indexOf(sig.q)<0) hit.push(sig.q);
+        }
+      });
+    });
+    return {s,sc,hit};
+  }).filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,2);
+  scored.forEach(x=>{
+    const recChips=x.s.recs.map(name=>{
+      let it=ALL.find(i=>i.name===name) || ALL.find(i=>i.name.indexOf(name)>=0);
+      if(!it||!it.url) return '';
+      return '<a class="rec-chip" href="'+it.url+'" target="_blank" rel="noopener">'+esc(name)+' ↗</a>';
+    }).join('');
+    const why=x.hit.length? '依据你搜过的：'+x.hit.slice(0,3).map(esc).join('、') : '依据你的搜索';
+    cards+='<div class="rec-card"><div class="rec-head"><span class="rec-ico">✦</span><div><div class="rec-t">我猜你在做「'+esc(x.s.label)+'」</div><div class="rec-d">'+esc(x.s.desc)+' · <span class="rec-why">'+why+'</span></div></div></div><div class="rec-chips">'+recChips+'</div></div>';
+  });
+  // 2) 兜底：只要当前有搜索词，就把最相关资源直接列成推荐卡，保证下方总有推荐栏目
+  if(kw){
+    const near=ALL.filter(it=>scoreItem(it,kw).ok)
+      .sort((a,b)=>scoreItem(b,kw).score-scoreItem(a,kw).score).slice(0,6);
+    if(near.length){
+      const chips=near.map(it=>it.url
+        ? '<a class="rec-chip" href="'+it.url+'" target="_blank" rel="noopener">'+esc(it.name)+' ↗</a>'
+        : '<span class="rec-chip">'+esc(it.name)+'</span>').join('');
+      cards+='<div class="rec-card"><div class="rec-head"><span class="rec-ico">◎</span><div><div class="rec-t">与「'+esc(kw)+'」最相关的资源</div><div class="rec-d">依据关键词直接匹配 · 点标签打开，或在下方结果区查看全部</div></div></div><div class="rec-chips">'+chips+'</div></div>';
+    }
+  }
+  if(!cards && !hist.length){ box.innerHTML=''; return; }
+  const recent=hist.length? '<div class="hist-row"><span class="hist-l">最近搜索</span>'+hist.slice(0,8).map(x=>'<button class="hist-chip" data-q="'+esc(x.q)+'">'+esc(x.q)+'</button>').join('')+'<button class="hist-clear" id="histClear">清除记录</button></div>':'';
+  const label='<div class="smart-label">✦ 智能推荐 · '+(scored.length?'依据你的搜索记录推测你可能要做的实验/论文':'为你列出当前最相关的资源')+'</div>';
+  box.innerHTML=label+'<div class="rec-grid">'+cards+'</div>'+recent;
+  box.querySelectorAll('.hist-chip').forEach(b=>b.addEventListener('click',()=>{
+    const q=b.dataset.q; document.getElementById('q').value=q; kw=q.toLowerCase();
+    addHistory(q); render();renderSmart();renderSuggest();
+  }));
+  const cl=document.getElementById('histClear'); if(cl) cl.addEventListener('click',clearHistory);
+}
+
+/* ---------- 联想下拉 ---------- */
+function renderSuggest(){
+  const box=document.getElementById('suggest');
+  const inp=document.getElementById('q');
+  const raw=inp.value.trim();
+  if(!raw){ box.style.display='none'; suggestList=[]; selIdx=-1; return; }
+  const q=raw.toLowerCase();
+  suggestList=ALL.map(it=>({it,sc:scoreItem(it,q)})).filter(x=>x.sc.ok)
+    .sort((a,b)=>b.sc.score-a.sc.score).slice(0,6);
+  selIdx=-1;
+  if(!suggestList.length){ box.innerHTML='<div class="sug-empty">没有匹配项 · 换个词试试（支持拼音，如 wxjs / jczj）</div>'; box.style.display='block'; return; }
+  let h='<div class="sug-title"><span>匹配推荐（选择后在下方结果中定位，不自动打开网站）</span><span>↑↓ 选择 · Enter 定位 · Esc 关闭</span></div>';
+  suggestList.forEach((x,i)=>{
+    const tag = x.sc.type==='py'||x.sc.type==='ab' ? '<span class="sug-badge">拼音</span>'
+              : x.sc.type==='fuzzy' ? '<span class="sug-badge fuzzy">容错</span>' : '';
+    h+='<div class="sug-item" data-i="'+i+'"><span class="sug-dot" style="background:'+x.it._cat.color+'"></span><span class="sug-name">'+hl(x.it.name,x.it,q,false)+'</span><span class="sug-cat">'+esc(x.it._cat.title)+'</span>'+tag+'</div>';
+  });
+  box.innerHTML=h; box.style.display='block';
+  box.querySelectorAll('.sug-item').forEach(el=>{
+    el.addEventListener('mousedown',e=>{e.preventDefault();openSuggest(parseInt(el.dataset.i,10))});
+    el.addEventListener('mouseenter',()=>{selIdx=parseInt(el.dataset.i,10);paintSel()});
+  });
+}
+function paintSel(){ document.querySelectorAll('.sug-item').forEach((el,i)=>el.classList.toggle('sel',i===selIdx)); }
+function openSuggest(i){
+  const x=suggestList[i]; if(!x) return;
+  const it=x.it;
+  // 关键：绝不篡改用户的搜索词 / kw，下方保留宽泛匹配的全部结果
+  addHistory(document.getElementById('q').value.trim());
+  document.getElementById('suggest').style.display='none';
+  // 联想项只负责在下方结果里滚动 + 高亮定位，不收窄结果、不自动打开网站
+  const sel=document.querySelector('.cat .card .card-name a[href="'+it.url+'"]');
+  const card=sel?sel.closest('.card'):null;
+  const anchor=card||document.getElementById('main');
+  if(anchor && anchor.scrollIntoView) anchor.scrollIntoView({behavior:'smooth',block:'center'});
+  if(card){ card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash'); }
+  toast('已定位「'+it.name+'」· 搜索词不变，下方仍是全部相关结果');
+}
+
+/* ---------- 主渲染 ---------- */
+function renderChips(){
+  const box=document.getElementById('chips');
+  let h='<button class="chip'+(curCat==='all'?' on':'')+'" data-c="all">全部</button>';
+  DATA.categories.forEach(c=>{h+='<button class="chip'+(curCat===c.id?' on':'')+'" data-c="'+c.id+'">'+c.title+'</button>'});
+  box.innerHTML=h;
+  box.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{curCat=b.dataset.c;renderChips();render()}));
+}
+function match(it){ return scoreItem(it,kw).ok; }
+function render(){
+  const main=document.getElementById('main');
+  let shown=0,rendered=0,html='';
+  DATA.categories.forEach(c=>{
+    if(curCat!=='all' && curCat!==c.id) return;
+    const matched=c.items.filter(match);
+    if(!matched.length) return;
+    const isSearching=!!kw||curCat!=='all';
+    const foldOn=matched.length>COLS;
+    const isOpen=isSearching||!foldOn||expanded.has(c.id);
+    const tops=matched.filter(x=>x.top);
+    const items=isOpen?matched:(tops.length?tops:matched.slice(0,3));
+    shown+=matched.length; rendered+=items.length;
+    let cards='';
+    items.forEach(it=>{
+      const tags=it.tags.map(tagHtml).join('');
+      const nm=hl(it.name,it,kw,true);
+      if(it.url){
+        const copy='<button class="copy" data-url="'+it.url+'" title="复制链接"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>';
+        cards+='<div class="card'+(it.top?' top':'')+'"><div class="card-top"><div class="card-name"><a href="'+it.url+'" target="_blank" rel="noopener">'+nm+'</a></div><a class="go" href="'+it.url+'" target="_blank" rel="noopener" title="打开">↗</a></div><div class="card-desc">'+hl(it.desc,it,kw,false)+'</div><div class="card-foot"><span class="domain">'+domain(it.url)+'</span><span class="tags">'+tags+'</span>'+copy+'</div></div>';
+      }else{
+        cards+='<div class="card"><div class="card-top"><div class="card-name">'+nm+'</div><span class="no-url">需搜索获取</span></div><div class="card-desc">'+hl(it.desc,it,kw,false)+'</div><div class="card-foot"><span class="domain">非直达网址</span><span class="tags">'+tags+'</span></div></div>';
+      }
+    });
+    let moreBtn='';
+    if(!isSearching && foldOn){
+      if(expanded.has(c.id) && matched.length>3){
+        moreBtn='<button class="cat-more open" data-cat="'+c.id+'">收起<span>⌃</span></button>';
+      }else if(matched.length>items.length){
+        moreBtn='<button class="cat-more" data-cat="'+c.id+'">展开其余 '+(matched.length-items.length)+' 项<span>⌄</span></button>';
+      }
+    }
+    let extra='';
+    if(c.extra){ extra='<div class="extra"><span class="xlabel">'+c.extra.label+'</span><code>'+c.extra.code+'</code><span class="xdesc">'+c.extra.desc+'</span></div>'; }
+    html+='<section class="cat" id="'+c.id+'" style="--cc:'+c.color+'"><div class="cat-head"><div class="cat-ico">'+ico(c.icon)+'</div><div class="cat-title"><h2>'+c.title+'</h2><p>'+c.en+'</p></div><span class="cat-num">'+matched.length+' 个资源</span></div><div class="grid">'+cards+'</div>'+moreBtn+extra+'</section>';
+  });
+  // 搜索时置顶"匹配资源"栏目标题，明确这些是推荐结果、点卡片才打开网站
+  if(kw){
+    const head='<div class="result-head"><div class="result-head-t">匹配资源 · 为你找到 <b>'+shown+'</b> 个结果</div><div class="result-head-s">关键词「'+esc(kw)+'」· 下方按分类列出 · 点开卡片才会访问对应网站</div></div>';
+    html=head+html;
+  }
+  main.innerHTML=html;
+  if(computeCols()){ render(); return; }
+  document.getElementById('result').textContent=(kw||curCat!=='all')?('找到 '+shown+' 个资源'):('默认展示 '+rendered+' 个常用 · 全部 '+DATA.meta.total+' 个（一行放得下的分类已全展开）');
+
+  document.getElementById('empty').classList.toggle('show',shown===0);
+  bindCopy();
+  bindMore();
+}
+
+/* ---------- 工具函数 ---------- */
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800);
+}
+function bindCopy(){
+  document.querySelectorAll('.copy').forEach(b=>b.addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    const url=b.dataset.url;
+    const done=()=>{b.classList.add('done');toast('链接已复制');setTimeout(()=>b.classList.remove('done'),1600)};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(done).catch(()=>fallback(url,done))}
+    else fallback(url,done);
+  }));
+}
+function computeCols(){
+  const g=document.querySelector('.cat .grid');
+  if(!g) return false;
+  const MIN=310, GAP=16;                     // 与 CSS 的 minmax(310px,1fr)/gap:16px 一致
+  const w=g.clientWidth||0;
+  if(!w) return false;
+  const n=Math.max(1, Math.floor((w+GAP)/(MIN+GAP)));
+  if(n!==COLS){ COLS=n; return true; }
+  return false;
+}
+function bindMore(){
+  document.querySelectorAll('.cat-more').forEach(b=>b.addEventListener('click',()=>{
+    const id=b.dataset.cat;
+    if(expanded.has(id)) expanded.delete(id); else expanded.add(id);
+    render();
+    const sec=document.getElementById(id);
+    if(sec) sec.scrollIntoView({block:'start',behavior:'smooth'});
+  }));
+}
+function fallback(url,done){
+  const ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');done()}catch(e){toast('复制失败，请手动复制')}
+  document.body.removeChild(ta);
+}
+function exportBookmarks(){
+  let h='<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n';
+  h+='    <DT><H3>生信与虚拟实验资源导航</H3>\n    <DL><p>\n';
+  DATA.categories.forEach(c=>{
+    const withUrl=c.items.filter(i=>i.url); if(!withUrl.length) return;
+    h+='        <DT><H3>'+esc(c.title)+'</H3>\n        <DL><p>\n';
+    withUrl.forEach(i=>{h+='            <DT><A HREF="'+esc(i.url)+'">'+esc(i.name)+'</A>\n'});
+    h+='        </DL><p>\n';
+  });
+  h+='    </DL><p>\n</DL><p>\n';
+  const blob=new Blob([h],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='生信与虚拟实验资源导航_书签.html';document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(a.href);
+  toast('书签文件已导出，可在浏览器中导入');
+}
+function renderAdvice(){
+  document.getElementById('advice').innerHTML=DATA.advice.map(a=>'<div class="advice-card" style="border-top-color:'+a.color+'"><h3>'+esc(a.title)+'</h3><p>'+esc(a.desc)+'</p></div>').join('');
+}
+
+/* ---------- 事件绑定 ---------- */
+const inp=document.getElementById('q');
+let histTimer=null;
+inp.addEventListener('input',e=>{
+  kw=e.target.value.trim().toLowerCase();
+  render(); renderSuggest(); renderSmart();
+  clearTimeout(histTimer);
+  const v=e.target.value.trim();
+  if(v.length>=2) histTimer=setTimeout(()=>{addHistory(v);renderSmart()},700);
+});
+inp.addEventListener('keydown',e=>{
+  const box=document.getElementById('suggest');
+  if(box.style.display==='none'||!suggestList.length){
+    if(e.key==='Enter'){ addHistory(inp.value.trim()); box.style.display='none'; renderSmart(); }
+    return;
+  }
+  if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%suggestList.length;paintSel()}
+  else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+suggestList.length)%suggestList.length;paintSel()}
+  else if(e.key==='Enter'){
+    e.preventDefault();
+    // 仅当用户用方向键明确选中某项(selIdx>=0)才定位；直接回车保持搜索词、显示全部匹配结果
+    if(selIdx>=0){ openSuggest(selIdx); }
+    else { addHistory(inp.value.trim()); box.style.display='none'; render(); renderSmart(); }
+  }
+  else if(e.key==='Escape'){box.style.display='none';selIdx=-1}
+});
+document.addEventListener('click',e=>{
+  const wrap=document.getElementById('searchWrap');
+  if(wrap && !wrap.contains(e.target)) document.getElementById('suggest').style.display='none';
+});
+document.getElementById('export').addEventListener('click',exportBookmarks);
+
+/* ---------- 主题切换 ---------- */
+function themeIcon(){
+  var dark=document.documentElement.getAttribute('data-theme')==='dark';
+  // 深色时用太阳，浅色时用月亮
+  return dark
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M19.1 4.9l-1.6 1.6M6.5 17.5l-1.6 1.6"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.2A8.5 8.5 0 019.8 3.5a8.5 8.5 0 1010.7 10.7z"/></svg>';
+}
+function syncThemeBtn(){
+  var b=document.getElementById('themeToggle'); if(!b) return;
+  b.innerHTML=themeIcon();
+  var dark=document.documentElement.getAttribute('data-theme')==='dark';
+  b.title=dark?'切换到浅色模式':'切换到深色模式';
+}
+function toggleTheme(){
+  var h=document.documentElement;
+  var next=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',next);
+  try{localStorage.setItem('bionav_theme',next)}catch(e){}
+  syncThemeBtn();
+}
+var tb=document.getElementById('themeToggle'); if(tb) tb.addEventListener('click',toggleTheme);
+
+renderChips();render();renderAdvice();renderSmart();syncThemeBtn();
+
+
+/* 按实际列数校正折叠；窗口缩放后重新计算 */
+try{ if(computeCols()) render(); }catch(e){}
+let _rzT=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(_rzT);
+  _rzT=setTimeout(()=>{ computeCols(); render(); },180);
+});
+</script>
+</body>
+</html>
